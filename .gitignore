@@ -1,2 +1,5 @@
 node_modules/
-node_modules
+screenshots/
+tweets.db
+state.json
+package-lock.json

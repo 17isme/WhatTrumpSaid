@@ -4,6 +4,7 @@
   "description": "",
   "main": "monitor_x.js",
   "scripts": {
+    "start": "node monitor_x.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,6 +20,9 @@
   },
   "homepage": "https://github.com/17isme/WhatTrumpSaid#readme",
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "express": "^5.2.1",
+    "google-translate-api-x": "^10.7.2",
     "playwright": "^1.58.1"
   }
 }

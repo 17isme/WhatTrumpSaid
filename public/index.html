@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatTrumpSaid | 言论的视觉解构</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
+
+        [v-cloak] {
+            display: none;
+        }
+
+        :root {
+            --bg-color: #fcfaf7;
+            --text-main: #1a1a1a;
+            --accent-red: #c53030;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Times New Roman', serif;
+            overflow-x: hidden;
+        }
+
+        /* 艺术字体 */
+        .font-serif-display {
+            font-family: 'Playfair Display', "PingFang SC", "Hiragino Sans GB", serif;
+        }
+
+        /* 极简滚动条 */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d1d1;
+            border-radius: 10px;
+        }
+
+        /* 进场动画 */
+        .reveal-text {
+            animation: reveal 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        @keyframes reveal {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 画廊阴影 */
+        .gallery-shadow {
+            box-shadow: 0 30px 60px -12px rgba(50, 50, 93, 0.1), 0 18px 36px -18px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 报纸质感细节 */
+        .news-texture {
+            background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+                line-height: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="news-texture antialiased">
+    <div id="app" v-cloak>
+        <!-- 极简悬浮导航 -->
+        <nav
+            class="fixed top-0 w-full z-[100] px-6 py-8 flex justify-between items-center mix-blend-difference text-white">
+            <div class="flex items-center gap-4">
+                <span class="font-serif-display text-2xl font-black tracking-tighter uppercase italic">W.T.S</span>
+                <div class="h-[1px] w-12 bg-white hidden md:block"></div>
+                <span class="text-[10px] tracking-[0.3em] font-light hidden md:block">THE TYPOGRAPHY OF MOMENTS</span>
+            </div>
+            <div class="flex items-center gap-8">
+                <button @click="fetchTweets" class="group flex items-center gap-2">
+                    <span
+                        class="text-[10px] tracking-widest font-bold group-hover:mr-2 transition-all uppercase">更新馆藏</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:rotate-45"></i>
+                </button>
+            </div>
+        </nav>
+
+        <main>
+            <!-- Hero Section: 艺术品序幕 -->
+            <section class="min-h-screen flex flex-col justify-center px-6 md:px-20 relative overflow-hidden">
+                <div class="absolute right-[-5%] top-[10%] opacity-[0.03] select-none pointer-events-none">
+                    <h1 class="font-serif-display text-[40vw] leading-none">47</h1>
+                </div>
+
+                <div class="relative z-10">
+                    <p class="text-[12px] tracking-[0.5em] font-bold text-gray-400 mb-6 uppercase reveal-text">Digital
+                        Typography / Florida</p>
+                    <h1
+                        class="hero-title font-serif-display text-6xl md:text-9xl font-black mb-8 leading-[0.9] reveal-text">
+                        What <br> <span class="italic text-red-700">Trump</span> <br> Said.
+                    </h1>
+                    <div class="max-w-md reveal-text" style="animation-delay: 0.2s">
+                        <p class="text-gray-500 leading-relaxed italic text-lg border-l-2 border-red-700 pl-6">
+                            "信息的杂讯被过滤，仅留下文字在空间中的律动。我们将每一条动态重构为一场关于比例、节奏与排版的视觉实验。"
+                        </p>
+                        <p v-if="stats.totalTweets" class="mt-8 text-[11px] tracking-[0.3em] text-gray-300 uppercase">
+                            COLLECTION &middot; {{ stats.totalTweets }} PIECES ARCHIVED</p>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-10 left-6 md:left-20 animate-bounce">
+                    <i data-lucide="mouse" class="w-6 h-6 text-gray-300"></i>
+                </div>
+            </section>
+
+            <!-- 动态流：非对称艺术布局 -->
+            <section class="px-6 md:px-20 pb-40">
+                <div v-if="loading && tweets.length === 0" class="flex justify-center items-center py-40">
+                    <div class="w-12 h-12 border-t-2 border-red-700 rounded-full animate-spin"></div>
+                </div>
+
+                <div v-else class="grid grid-cols-1 md:grid-cols-12 gap-y-32">
+                    <div v-for="(tweet, index) in tweets" :key="tweet.tweet_id" class="md:col-span-8 group"
+                        :class="index % 2 === 0 ? 'md:col-start-1' : 'md:col-start-5 md:text-right'">
+
+                        <!-- 每一条推文都是一个展品 -->
+                        <div class="relative inline-block w-full">
+                            <!-- 编号 -->
+                            <span
+                                class="absolute -top-10 left-0 md:left-auto md:-right-10 font-serif-display text-8xl text-gray-100 -z-10 group-hover:text-red-50 transition-colors">
+                                {{ String(index + 1).padStart(2, '0') }}
+                            </span>
+
+                            <div class="flex flex-col" :class="index % 2 === 0 ? 'items-start' : 'items-end'">
+                                <!-- 发布时间 -->
+                                <div
+                                    class="mb-4 flex items-center gap-3 text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">
+                                    <span class="w-8 h-[1px] bg-gray-200"></span>
+                                    {{ formatTime(tweet.scraped_at) }}
+                                </div>
+
+                                <!-- 推文核心：极致排版 -->
+                                <div
+                                    class="gallery-shadow bg-white p-10 md:p-16 rounded-[2px] transition-transform duration-700 hover:-translate-y-4 max-w-2xl border-t-4 border-black">
+                                    <h3 class="font-serif-display text-2xl md:text-4xl leading-snug mb-6"
+                                        :class="index % 2 === 0 ? 'text-left' : 'text-right'">
+                                        {{ tweet.tweet_text }}
+                                    </h3>
+
+                                    <!-- 中文译文 -->
+                                    <p v-if="tweet.tweet_text_zh"
+                                        class="text-gray-400 text-base leading-relaxed mb-8 border-l-2 border-red-200 pl-4 italic"
+                                        :class="index % 2 === 0 ? 'text-left' : 'text-right border-l-0 border-r-2 pr-4 pl-0'">
+                                        {{ tweet.tweet_text_zh }}
+                                    </p>
+
+                                    <!-- 截图展示 -->
+                                    <div v-if="tweet.screenshot_path" class="mb-8 overflow-hidden">
+                                        <img :src="'/' + tweet.screenshot_path"
+                                            class="w-full grayscale hover:grayscale-0 transition-all duration-1000 transform hover:scale-105"
+                                            alt="Tweet Screenshot">
+                                    </div>
+
+                                    <!-- 数据脚标 -->
+                                    <div
+                                        class="flex items-center justify-between text-[10px] font-black tracking-widest text-gray-300 border-t border-gray-50 pt-8 uppercase">
+                                        <span class="hover:text-red-700 cursor-default">ARCHIVED {{ tweet.scraped_at
+                                            }}</span>
+                                        <a :href="tweet.tweet_url" target="_blank"
+                                            class="text-black hover:text-red-700 transition-colors">
+                                            查看原件 &rarr;
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 加载更多 -->
+                <div v-if="hasMore" class="flex justify-center mt-20">
+                    <button @click="loadMore"
+                        class="group border border-gray-300 px-12 py-4 text-[11px] tracking-[0.3em] font-bold uppercase hover:bg-black hover:text-white hover:border-black transition-all duration-500">
+                        <span v-if="!loading">Load More Pieces</span>
+                        <span v-else>Loading...</span>
+                    </button>
+                </div>
+
+                <!-- 结尾：艺术展馆的落幕 -->
+                <div class="mt-60 text-center border-t border-gray-200 pt-20">
+                    <h4 class="font-serif-display text-3xl italic mb-4">The Form Stays Eternal.</h4>
+                    <p class="text-[10px] tracking-[0.5em] text-gray-400 uppercase">视觉重构 &middot; 文字在空间中的形态演变</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- 画廊浮动控制面板 (仅移动端优化) -->
+        <div class="md:hidden fixed bottom-8 right-6 z-[100]">
+            <button @click="fetchTweets" class="bg-black text-white p-5 rounded-full shadow-2xl">
+                <i data-lucide="refresh-cw" :class="{'animate-spin': loading}" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- 极简 Toast -->
+        <transition name="slide-up">
+            <div v-if="toast.show"
+                class="fixed bottom-0 left-0 w-full bg-red-700 text-white py-4 text-center text-xs tracking-[0.3em] font-bold z-[101] uppercase">
+                {{ toast.message }}
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const loading = ref(false);
+                const tweets = ref([]);
+                const toast = ref({ show: false, message: '' });
+                const currentPage = ref(1);
+                const hasMore = ref(false);
+                const stats = reactive({ totalTweets: 0 });
+                const PAGE_SIZE = 10;
+
+                // 格式化时间为画廊风格
+                const formatTime = (dateStr) => {
+                    if (!dateStr) return '';
+                    try {
+                        const d = new Date(dateStr + 'Z');
+                        const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+                        const h = d.getHours();
+                        const m = String(d.getMinutes()).padStart(2, '0');
+                        const ampm = h >= 12 ? 'PM' : 'AM';
+                        const h12 = h % 12 || 12;
+                        return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} / ${h12}:${m} ${ampm}`;
+                    } catch (_) {
+                        return dateStr;
+                    }
+                };
+
+                // 显示 toast 通知
+                const showToast = (msg) => {
+                    toast.value = { show: true, message: msg };
+                    setTimeout(() => { toast.value.show = false; }, 2500);
+                };
+
+                // 获取统计信息
+                const fetchStats = async () => {
+                    try {
+                        const res = await fetch('/api/stats');
+                        const data = await res.json();
+                        stats.totalTweets = data.totalTweets;
+                    } catch (_) { }
+                };
+
+                // 获取推文（首次加载 / 刷新）
+                const fetchTweets = async () => {
+                    loading.value = true;
+                    currentPage.value = 1;
+                    try {
+                        const res = await fetch(`/api/tweets?page=1&limit=${PAGE_SIZE}`);
+                        const data = await res.json();
+                        tweets.value = data.tweets;
+                        hasMore.value = data.pagination.page < data.pagination.totalPages;
+                        await fetchStats();
+                        showToast(`COLLECTION UPDATED \u00b7 ${data.pagination.total} PIECES`);
+                    } catch (e) {
+                        showToast('FAILED TO CONNECT TO ARCHIVE');
+                    }
+                    loading.value = false;
+                    setTimeout(() => lucide.createIcons(), 0);
+                };
+
+                // 加载更多
+                const loadMore = async () => {
+                    if (loading.value) return;
+                    loading.value = true;
+                    currentPage.value++;
+                    try {
+                        const res = await fetch(`/api/tweets?page=${currentPage.value}&limit=${PAGE_SIZE}`);
+                        const data = await res.json();
+                        tweets.value.push(...data.tweets);
+                        hasMore.value = data.pagination.page < data.pagination.totalPages;
+                    } catch (e) {
+                        showToast('FAILED TO LOAD MORE');
+                    }
+                    loading.value = false;
+                };
+
+                onMounted(() => {
+                    fetchTweets();
+                    lucide.createIcons();
+
+                    // 每 5 分钟自动刷新
+                    setInterval(fetchTweets, 5 * 60 * 1000);
+                });
+
+                return { loading, tweets, fetchTweets, loadMore, toast, hasMore, stats, formatTime };
+            }
+        }).mount('#app');
+    </script>
+
+    <style>
+        .slide-up-enter-active,
+        .slide-up-leave-active {
+            transition: transform 0.4s ease;
+        }
+
+        .slide-up-enter-from,
+        .slide-up-leave-to {
+            transform: translateY(100%);
+        }
+    </style>
+</body>
+
+</html>

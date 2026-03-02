@@ -159,4 +159,4 @@ Constants at the top of `monitor_x.js`:
 
 ## 📄 License
 
-ISC
+MIT
